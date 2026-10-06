@@ -78,7 +78,7 @@ app.get('/', (req, res) => {
     status: 200,
     message: 'File Upload API',
     data: {
-      name: 'image-upload-api',
+      name: 'TamaCloud',
       version: '2.0.0',
       stack: 'Node.js + Express + Multer + Sharp',
       max_file_size_mb: MAX_FILE_SIZE_MB,
