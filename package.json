@@ -1,0 +1,31 @@
+{
+  "name": "image-upload-api",
+  "version": "1.0.0",
+  "description": "Simple, fast and production-ready image upload API with automatic compression (Express + Multer + Sharp)",
+  "main": "src/server.js",
+  "private": true,
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js"
+  },
+  "keywords": [
+    "express",
+    "image",
+    "upload",
+    "multer",
+    "sharp",
+    "compression",
+    "api"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "multer": "^2.4.0",
+    "sharp": "^0.35.5"
+  }
+}

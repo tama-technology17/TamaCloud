@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Upload API &mdash; Playground</title>
+  <meta name="description" content="Antarmuka web untuk menguji Upload API (gambar, video, audio)." />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&nbsp;&#128247;</text></svg>" />
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <div class="bg-grid" aria-hidden="true"></div>
+
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+          <path d="M7 10l5-5 5 5" />
+          <path d="M12 5v12" />
+        </svg>
+      </span>
+      <div class="brand-text">
+        <h1>Upload API</h1>
+        <p>Gambar &middot; Video &middot; Audio &mdash; Express + Multer + Sharp</p>
+      </div>
+    </div>
+
+    <div class="topbar-actions">
+      <span id="healthBadge" class="badge badge-muted" title="Status API">
+        <span class="dot"></span><span id="healthText">memeriksa...</span>
+      </span>
+      <a class="btn btn-ghost" id="apiInfoBtn" href="#" target="_blank" rel="noopener">Info API</a>
+    </div>
+  </header>
+
+  <main class="layout">
+    <section class="panel" aria-labelledby="uploadTitle">
+      <div class="panel-head">
+        <h2 id="uploadTitle">Upload file</h2>
+        <span class="hint">Gambar <strong id="maxSizeLabel">20 MB</strong> &middot; Video/Audio <strong id="maxMediaLabel">50 MB</strong></span>
+      </div>
+
+      <!-- Dropzone -->
+      <div id="dropzone" class="dropzone" tabindex="0" role="button"
+           aria-label="Klik atau seret file ke sini untuk diunggah">
+        <div class="dz-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="18" height="18" rx="3" />
+            <circle cx="8.5" cy="8.5" r="1.6" />
+            <path d="M21 15l-5-5L5 21" />
+          </svg>
+        </div>
+        <p class="dz-title">Seret &amp; lepas file ke sini</p>
+        <p class="dz-sub">atau <span class="link">klik untuk memilih</span> &middot; bisa juga <kbd>Ctrl</kbd>+<kbd>V</kbd></p>
+
+        <div class="chips-group">
+          <div class="chips">
+            <span class="chips-label chips-label-image">Gambar</span>
+            <li>JPG</li><li>PNG</li><li>WEBP</li><li>GIF</li>
+          </div>
+          <div class="chips">
+            <span class="chips-label chips-label-video">Video</span>
+            <li>MP4</li><li>WEBM</li><li>MOV</li><li>AVI</li><li>MKV</li>
+          </div>
+          <div class="chips">
+            <span class="chips-label chips-label-audio">Audio</span>
+            <li>MP3</li><li>WAV</li><li>OGG</li><li>M4A</li><li>FLAC</li><li>AAC</li>
+          </div>
+        </div>
+
+        <input type="file" id="fileInput"
+               accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm,video/quicktime,video/x-msvideo,video/x-matroska,video/ogg,video/3gpp,audio/mpeg,audio/wav,audio/ogg,audio/mp4,audio/aac,audio/flac"
+               multiple hidden />
+      </div>
+
+      <p class="paste-hint">
+        <strong>Kompresi otomatis</strong> hanya untuk gambar &gt; <strong id="compressLabel">7 MB</strong> &rarr; diturunkan sampai <strong>&le; 5 MB</strong>.
+        Video &amp; audio disimpan apa adanya.
+      </p>
+
+      <!-- Info kategori -->
+      <div class="category-info" id="categoryInfo"></div>
+    </section>
+
+    <section class="panel" aria-labelledby="queueTitle">
+      <div class="panel-head">
+        <h2 id="queueTitle">Antrean upload</h2>
+        <span class="hint" id="queueStats">&mdash;</span>
+      </div>
+
+      <div id="queue" class="queue" aria-live="polite">
+        <p class="empty">Belum ada upload. Pilih beberapa file sekaligus.</p>
+      </div>
+    </section>
+
+    <section class="panel" aria-labelledby="galleryTitle">
+      <div class="panel-head">
+        <h2 id="galleryTitle">Hasil upload</h2>
+        <div class="head-actions">
+          <div class="filters" id="filters" role="tablist" aria-label="Filter kategori">
+            <button class="chip-filter is-active" data-filter="all" type="button">Semua</button>
+            <button class="chip-filter" data-filter="image" type="button">Gambar</button>
+            <button class="chip-filter" data-filter="video" type="button">Video</button>
+            <button class="chip-filter" data-filter="audio" type="button">Audio</button>
+          </div>
+          <button class="btn btn-ghost btn-sm" id="clearAllBtn" type="button">Hapus semua</button>
+        </div>
+      </div>
+
+      <div id="gallery" class="gallery">
+        <p class="empty">File yang berhasil diunggah akan tampil di sini.</p>
+      </div>
+    </section>
+
+    <section class="panel panel-raw" aria-labelledby="rawTitle">
+      <div class="panel-head">
+        <h2 id="rawTitle">Response JSON terakhir</h2>
+        <button class="btn btn-ghost btn-sm" id="copyRawBtn" type="button">Salin JSON</button>
+      </div>
+      <pre id="rawJson" class="code"><code>&mdash;</code></pre>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <span>POST <code>/upload</code> &middot; GET <code>/upload/:category/:filename</code> &middot; DELETE <code>/upload/:category/:filename</code> &middot; GET <code>/health</code></span>
+    <span id="baseUrlLabel"></span>
+  </footer>
+
+  <div id="toasts" class="toasts" aria-live="assertive"></div>
+
+  <div id="lightbox" class="lightbox" hidden>
+    <button class="lightbox-close" id="lightboxClose" type="button" aria-label="Tutup">&times;</button>
+    <img id="lightboxImg" alt="Pratinjau gambar" />
+    <p id="lightboxCaption" class="lightbox-caption"></p>
+  </div>
+
+  <script src="./app.js"></script>
+</body>
+</html>
