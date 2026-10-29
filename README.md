@@ -26,7 +26,8 @@ Upload (multipart)  ->  Validasi (ekstensi + file signature)  ->  Pisahkan per k
 | 7 | Kompresi | **Hanya gambar > 7 MB**, diturunkan bertahap sampai **≤ 5 MB**, format tidak diubah |
 | 8 | Response | JSON rapi: `success`, `status`, `message`, `data` (+ `category`) |
 | 9 | Static file | `GET /upload/<category>/<filename>` dilayani Express static |
-| 10 | Endpoint | `GET /`, `GET /health`, `POST /upload`, `GET|DELETE /upload/:category/:filename` |
+| 10 | Endpoint | `GET /`, `GET /health`, `POST /upload`, `GET /upload/stats`, `GET|DELETE /upload/:category/:filename` |
+| 10a | Statistik | `GET /upload/stats` — total ukuran file di folder `upload/` (mis. `5.12 GB`) + rincian per kategori & kapasitas disk |
 | 11 | Error handling | Bentuk JSON konsisten + HTTP status yang benar |
 | 12 | Keamanan | Validasi magic bytes, sanitasi nama, anti path traversal, limit, CORS, no info leak |
 | 13 | Frontend | Web playground di `GET /app` (HTML/CSS/JS murni, tanpa framework) |
@@ -81,6 +82,7 @@ TamaCloud/
 │   └── utils/
 │       ├── fileName.js          # generator nama file, routing kategori, sanitasi
 │       ├── compress.js          # kompresi bertahap dengan Sharp
+│       ├── storage.js           # total ukuran folder upload (GET /upload/stats)
 │       └── logger.js            # logging sederhana
 ├── .env.example
 ├── .gitignore
@@ -124,6 +126,7 @@ Tersedia juga konstanta internal: kompresi bila **> 7 MB**, target hasil **≤ 5
 | `GET` | `/app` | Web playground (frontend HTML) |
 | `GET` | `/health` | Health check |
 | `POST` | `/upload` | Upload file (field: `file`) |
+| `GET` | `/upload/stats` | Total ukuran file di folder `upload/` (human-readable, mis. `5 GB`) |
 | `GET` | `/upload/:category/:filename` | Ambil file (`category`: `image` / `video` / `audio`) |
 | `DELETE` | `/upload/:category/:filename` | Hapus file |
 | `GET` | `/upload/:filename` | Ambil file (URL lama tanpa kategori) |
@@ -134,6 +137,59 @@ Tersedia juga konstanta internal: kompresi bila **> 7 MB**, target hasil **≤ 5
 ```json
 { "status": "ok", "timestamp": "2026-10-04T10:04:36.617Z" }
 ```
+
+### Statistik penyimpanan — `GET /upload/stats`
+
+Menghitung total ukuran **semua file** di dalam folder `upload/` (rekursif), lengkap dengan
+rincian per kategori dan kapasitas disk. File tersembunyi seperti `.gitkeep` dan file temp
+`.tmp-*` tidak dihitung.
+
+```bash
+curl http://localhost:3000/upload/stats
+```
+
+```json
+{
+  "success": true,
+  "status": 200,
+  "message": "Storage statistics retrieved successfully",
+  "data": {
+    "total_size": "5.12 GB",
+    "total_size_bytes": 5497558138,
+    "total_size_mb": 5242.88,
+    "total_size_gb": 5.12,
+    "total_files": 42,
+    "folder": "/var/www/TamaCloud/upload",
+    "categories": [
+      { "name": "image", "folder": "image", "files": 18, "size": "120.40 MB", "size_bytes": 126248550, "size_mb": 120.4, "size_gb": 0.12 },
+      { "name": "video", "folder": "video", "files": 12, "size": "4.86 GB", "size_bytes": 5218381264, "size_mb": 4976.62, "size_gb": 4.86 },
+      { "name": "audio", "folder": "audio", "files": 12, "size": "142.21 MB", "size_bytes": 149123324, "size_mb": 142.21, "size_gb": 0.14 }
+    ],
+    "disk": {
+      "total": "107.88 GB",
+      "total_bytes": 115837239296,
+      "free": "48.54 GB",
+      "free_bytes": 52117581824,
+      "used_bytes": 63585439744,
+      "used_percent": 55
+    },
+    "skipped_temp_files": 0,
+    "computed_at": "2026-10-07T10:35:00.667Z"
+  }
+}
+```
+
+| Field | Keterangan |
+|-------|------------|
+| `total_size` | Total ukuran dalam bentuk mudah dibaca (`B` / `KB` / `MB` / `GB` / `TB`) |
+| `total_size_bytes` | Total ukuran dalam byte (untuk perhitungan lanjutan) |
+| `total_files` | Jumlah file yang dihitung |
+| `categories[]` | Rincian per kategori: `files`, `size`, `size_bytes`, `size_mb`, `size_gb` |
+| `disk` | Kapasitas disk tempat folder `upload/` berada (`null` bila tidak didukung OS) |
+| `skipped_temp_files` | Jumlah file temp `.tmp-*` yang diabaikan |
+
+> Endpoint ini terdaftar **sebelum** `/upload/:filename`, sehingga kata `stats` tidak pernah
+> dianggap sebagai nama file.
 
 ---
 
@@ -317,6 +373,9 @@ Fitur UI:
 - Badge kategori (IMAGE/VIDEO/AUDIO) + badge `COMPRESSED −xx%` bila gambar dikompresi.
 - Aksi per kartu: **Buka**, **Salin URL**, **Hapus** (`DELETE /upload/:category/:filename`), plus **Hapus semua**.
 - **Health badge** dan info kategori (folder tujuan, batas ukuran, status kompresi) diambil dari `GET /`.
+- **Panel penyimpanan**: total ukuran (mis. `5.12 GB`), jumlah file, bar proporsi per kategori,
+  dan kapasitas disk. Diperbarui otomatis tiap 30 detik, setelah upload/hapus, dan lewat tombol **Segarkan**
+  (`GET /upload/stats`).
 - Menampilkan **JSON response terakhir** apa adanya, lengkap dengan tombol salin.
 - Toast notifikasi untuk sukses/gagal.
 

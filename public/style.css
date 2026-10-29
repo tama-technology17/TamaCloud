@@ -323,6 +323,56 @@ kbd {
 .ci-compress { margin-left: auto; color: var(--ok); font-size: 0.7rem; }
 .ci-compress.is-off { color: var(--text-faint); }
 
+/* ------------------------------------------------------ storage card -- */
+.storage-card {
+  margin-top: 14px;
+  padding: 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--bg-soft);
+}
+.storage-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.storage-head h3 { margin: 0; font-size: 0.8rem; font-weight: 700; }
+
+.storage-total { display: flex; align-items: baseline; gap: 8px; margin-top: 8px; }
+.storage-total strong { font-size: 1.32rem; letter-spacing: -0.02em; }
+.storage-total span { font-size: 0.76rem; color: var(--text-faint); }
+
+.storage-bar {
+  display: flex;
+  height: 7px;
+  margin: 9px 0 10px;
+  border-radius: 999px;
+  background: rgba(148, 163, 184, 0.16);
+  overflow: hidden;
+}
+.sb-part { height: 100%; }
+.sb-image { background: #6366f1; }
+.sb-video { background: #ec4899; }
+.sb-audio { background: #10b981; }
+.sb-other { background: #94a3b8; }
+
+.storage-legend { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 5px; }
+.storage-legend li {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.76rem;
+}
+.lg-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--dot, var(--text-faint)); flex: none; }
+.lg-name { color: var(--text-dim); }
+.lg-count { color: var(--text-faint); font-size: 0.72rem; }
+.lg-size { margin-left: auto; font-family: var(--mono); color: var(--text); }
+
+.storage-disk {
+  margin: 9px 0 0;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+  font-size: 0.72rem;
+  color: var(--text-faint);
+}
+.storage-disk:empty { display: none; }
+
 /* ---------------------------------------------------------------- queue -- */
 .queue { display: flex; flex-direction: column; gap: 10px; }
 

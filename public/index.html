@@ -81,6 +81,21 @@
 
       <!-- Info kategori -->
       <div class="category-info" id="categoryInfo"></div>
+
+      <!-- Penyimpanan -->
+      <div class="storage-card" id="storageCard">
+        <div class="storage-head">
+          <h3>Penyimpanan</h3>
+          <button class="btn btn-ghost btn-sm" id="refreshStatsBtn" type="button">Segarkan</button>
+        </div>
+        <div class="storage-total">
+          <strong id="storageTotal">&mdash;</strong>
+          <span id="storageFiles"></span>
+        </div>
+        <div class="storage-bar" id="storageBar" aria-hidden="true"></div>
+        <ul class="storage-legend" id="storageLegend"></ul>
+        <p class="storage-disk" id="storageDisk"></p>
+      </div>
     </section>
 
     <section class="panel" aria-labelledby="queueTitle">

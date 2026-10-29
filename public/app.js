@@ -66,6 +66,12 @@
   var galleryEl = $('#gallery');
   var galleryStats = $('#galleryStats');
   var categoryInfo = $('#categoryInfo');
+  var refreshStatsBtn = $('#refreshStatsBtn');
+  var storageTotal = $('#storageTotal');
+  var storageFiles = $('#storageFiles');
+  var storageBar = $('#storageBar');
+  var storageLegend = $('#storageLegend');
+  var storageDisk = $('#storageDisk');
   var rawJsonEl = $('#rawJson');
   var toastsEl = $('#toasts');
   var healthBadge = $('#healthBadge');
@@ -213,6 +219,58 @@
     }
   }
 
+  /* ------------------------------------------------ statistik penyimpanan */
+
+  var STORAGE_COLOR = { image: '#6366f1', video: '#ec4899', audio: '#10b981', other: '#94a3b8' };
+
+  async function loadStorageStats() {
+    try {
+      var res = await fetch(API + '/upload/stats', { cache: 'no-store' });
+      var body = await res.json();
+      if (!res.ok || !body.success) throw new Error(body.message || 'HTTP ' + res.status);
+
+      var data = body.data;
+      storageTotal.textContent = data.total_size;
+      storageFiles.textContent = data.total_files + ' file';
+
+      // Bar proporsi per kategori.
+      storageBar.textContent = '';
+      var maxBytes = data.total_size_bytes || 1;
+      data.categories.forEach(function (category) {
+        if (!category.size_bytes) return;
+        var part = el('span', 'sb-part sb-' + category.name);
+        part.style.width = (category.size_bytes / maxBytes) * 100 + '%';
+        part.title = GROUP_LABEL[category.name] + ': ' + category.size;
+        storageBar.appendChild(part);
+      });
+
+      // Legenda: jumlah file + ukuran per kategori.
+      storageLegend.textContent = '';
+      data.categories.forEach(function (category) {
+        var li = el('li');
+        li.appendChild(el('span', 'lg-dot', ''));
+        li.style.setProperty('--dot', STORAGE_COLOR[category.name]);
+        li.appendChild(el('span', 'lg-name', GROUP_LABEL[category.name] || category.name));
+        li.appendChild(el('span', 'lg-count', category.files + ' file'));
+        li.appendChild(el('span', 'lg-size', category.size));
+        storageLegend.appendChild(li);
+      });
+
+      storageDisk.textContent = data.disk
+        ? 'Disk: ' + data.disk.free + ' bebas dari ' + data.disk.total + ' (' + data.disk.used_percent + '% terpakai)'
+        : '';
+    } catch (e) {
+      storageTotal.textContent = 'Gagal memuat';
+      storageFiles.textContent = e.message || '';
+      storageDisk.textContent = '';
+    }
+  }
+
+  refreshStatsBtn.addEventListener('click', function () {
+    refreshStatsBtn.disabled = true;
+    loadStorageStats().then(function () { refreshStatsBtn.disabled = false; });
+  });
+
   /* ------------------------------------------------------- intake file(s) */
 
   function addFiles(fileList) {
@@ -304,6 +362,7 @@
               ? ' \u00b7 ' + item.data.original_size_mb + ' MB \u2192 ' + item.data.final_size_mb + ' MB'
               : ' \u00b7 ' + item.data.final_size_mb + ' MB'));
           addToGallery(item);
+      loadStorageStats();
         } else {
           item.status = 'error';
           item.error = (body && body.message) || 'HTTP ' + xhr.status;
@@ -573,6 +632,7 @@
 
       card.remove();
       refreshEmptyState();
+      loadStorageStats();
       toast('ok', 'File dihapus', data.filename);
     } catch (err) {
       button.disabled = false;
@@ -693,7 +753,7 @@
     toast(okCopy ? 'ok' : 'err', okCopy ? 'JSON disalin' : 'Gagal menyalin');
   });
 
-  clearAllBtn.addEventListener('click', clearAll);
+  clearAllBtn.addEventListener('click', function () { clearAll(); });
 
   function closeLightbox() { lightbox.hidden = true; lightboxImg.src = ''; }
   lightboxClose.addEventListener('click', closeLightbox);
@@ -707,6 +767,8 @@
   renderQueue();
   updateGalleryStats();
   loadApiInfo();
+  loadStorageStats();
   checkHealth();
   setInterval(checkHealth, 15000);
+  setInterval(loadStorageStats, 30000);
 })();

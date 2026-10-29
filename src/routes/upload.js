@@ -45,6 +45,7 @@ const {
   allCategoryDirs,
 } = require('../utils/fileName');
 const { shouldCompress, bytesToMb, compressImage } = require('../utils/compress');
+const { getStorageStats, formatBytes } = require('../utils/storage');
 const logger = require('../utils/logger');
 
 const router = express.Router();
@@ -149,6 +150,57 @@ async function removeStoredFile(res, filePath, filename) {
     data: { filename, deleted: true },
   });
 }
+
+/**
+ * GET /upload/stats
+ * Total ukuran seluruh file di folder upload, dikelompokkan per kategori.
+ *
+ * PENTING: route ini harus terdaftar SEBELUM "/:filename" dan
+ * "/:category/:filename", kalau tidak akan tertangkap sebagai filename.
+ */
+router.get('/stats', async (req, res) => {
+  try {
+    const stats = await getStorageStats();
+
+    return res.status(200).json({
+      success: true,
+      status: 200,
+      message: 'Storage statistics retrieved successfully',
+      data: {
+        total_size: stats.total.readable,
+        total_size_bytes: stats.total.bytes,
+        total_size_mb: stats.total.mb,
+        total_size_gb: stats.total.gb,
+        total_files: stats.total.files,
+        folder: stats.folder,
+        categories: stats.categories.map((category) => ({
+          name: category.name,
+          folder: category.folder,
+          files: category.files,
+          size: category.readable,
+          size_bytes: category.bytes,
+          size_mb: category.mb,
+          size_gb: category.gb,
+        })),
+        disk: stats.disk
+          ? {
+              total: stats.disk.readable,
+              total_bytes: stats.disk.bytes,
+              free: formatBytes(stats.disk.free_bytes),
+              free_bytes: stats.disk.free_bytes,
+              used_bytes: stats.disk.used_bytes,
+              used_percent: stats.disk.used_percent,
+            }
+          : null,
+        skipped_temp_files: stats.skipped_temp_files,
+        computed_at: stats.computed_at,
+      },
+    });
+  } catch (error) {
+    logger.error('Failed to compute storage statistics', error);
+    return fail(res, 500, 'Failed to retrieve storage statistics');
+  }
+});
 
 /**
  * POST /upload

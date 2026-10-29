@@ -1,6 +1,6 @@
 {
   "name": "tamaclood",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "TamaCloud - file upload API (gambar, video, audio) dengan kompresi otomatis + web playground HTML (Express + Multer + Sharp)",
   "main": "src/server.js",
   "private": true,

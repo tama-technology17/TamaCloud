@@ -4,6 +4,7 @@
  * File Upload API (image + video + audio)
  * --------------------------------------
  * POST   /upload                       upload file (multipart/form-data, field "file")
+ * GET    /upload/stats                 total ukuran file di folder upload
  * GET    /upload/:category/:filename   read file
  * DELETE /upload/:category/:filename   delete file
  * GET    /upload/:filename             read file (URL lama tanpa kategori)
@@ -79,7 +80,7 @@ app.get('/', (req, res) => {
     message: 'File Upload API',
     data: {
       name: 'TamaCloud',
-      version: '2.0.0',
+      version: '2.1.0',
       stack: 'Node.js + Express + Multer + Sharp',
       max_file_size_mb: MAX_FILE_SIZE_MB,
       max_media_file_size_mb: MAX_MEDIA_FILE_SIZE_MB,
@@ -104,6 +105,7 @@ app.get('/', (req, res) => {
         { method: 'GET', path: APP_ROUTE, description: 'Web playground (HTML frontend)' },
         { method: 'GET', path: '/health', description: 'Health check' },
         { method: 'POST', path: '/upload', description: 'Upload a file (field: file)' },
+        { method: 'GET', path: '/upload/stats', description: 'Total storage size per category' },
         { method: 'GET', path: '/upload/:category/:filename', description: 'Get an image / video / audio' },
         { method: 'DELETE', path: '/upload/:category/:filename', description: 'Delete an image / video / audio' },
         { method: 'GET', path: '/upload/:filename', description: 'Get a file (legacy URL without category)' },
